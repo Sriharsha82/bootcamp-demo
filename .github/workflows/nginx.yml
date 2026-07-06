@@ -1,0 +1,44 @@
+name: Build and Test NGINX App
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: |
+          docker build -t nginx-demo .
+
+      - name: Verify Docker Image
+        run: |
+          docker images
+
+      - name: Run Container
+        run: |
+          docker run -d --name nginx-demo-container -p 8080:80 nginx-demo
+
+      - name: Wait for NGINX
+        run: sleep 5
+
+      - name: Test Web Server
+        run: |
+          curl http://localhost:8080
+
+      - name: Stop Container
+        if: always()
+        run: |
+          docker stop nginx-demo-container
+          docker rm nginx-demo-container
